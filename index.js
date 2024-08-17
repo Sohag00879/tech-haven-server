@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
 
-app.get("/", (req, res) => res.send("hello"));
+app.get("/", (req, res) => res.send("hello from server"));
 app.use("/api/users", userRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/product", productRoutes);
