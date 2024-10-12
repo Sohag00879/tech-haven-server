@@ -17,6 +17,7 @@ import {
   productFilterByOffer,
   addProductCompare,
   getProductByCategory,
+  // getProductsBySearch,
 } from "../controllers/productController.js";
 const router = express.Router();
 
@@ -50,5 +51,7 @@ router
 router.route("/filtered-products").post(filterProducts);
 
 router.route("/productByCategory/:category").get(getProductByCategory);
+
+// router.route("/search/search-products").post(getProductsBySearch);
 
 export default router;

@@ -31,8 +31,8 @@ const addProduct = asyncHandler(async (req, res) => {
 
 const updateProductDetails = asyncHandler(async (req, res) => {
   try {
-    const { name, description, price, category, quantity, brand } = req.fields;
-
+    const { name, description, price, category, quantity, brand, discount } =
+      req.fields;
     switch (true) {
       case !name:
         return res.json({ error: "Name is required" });
@@ -49,10 +49,17 @@ const updateProductDetails = asyncHandler(async (req, res) => {
     }
     const previousProduct = await Product.findById(req.params.id);
 
-    const finalPrice = (
-      previousProduct.price -
-      (previousProduct.discount / 100) * previousProduct.price
-    ).toFixed(0);
+    let finalPrice;
+    if (discount != undefined) {
+      finalPrice = (
+        previousProduct.price -
+        (previousProduct.discount / 100) * previousProduct.price
+      ).toFixed(0);
+    } else {
+      finalPrice = previousProduct.price;
+    }
+    console.log(finalPrice);
+    console.log(discount);
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       {
@@ -233,7 +240,6 @@ const productFilterByOffer = asyncHandler(async (req, res) => {
 });
 
 const addProductCompare = asyncHandler(async (req, res) => {
-  console.log(req.params.id);
   try {
     const { compareSiteName, comparePrice, compareDescription } = req.body;
     const product = await Product.findById(req.params.id);
@@ -264,6 +270,24 @@ const getProductByCategory = asyncHandler(async (req, res) => {
   }
 });
 
+const getProductsBySearch = asyncHandler(async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.json([]);
+    }
+
+    const products = await Product.find({
+      name: { $regex: `^${query}`, $options: "i" },
+    });
+
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export {
   addProduct,
   updateProductDetails,
@@ -279,4 +303,5 @@ export {
   productFilterByOffer,
   addProductCompare,
   getProductByCategory,
+  getProductsBySearch,
 };

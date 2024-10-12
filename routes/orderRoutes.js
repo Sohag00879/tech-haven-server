@@ -11,6 +11,8 @@ import {
   findOrderById,
   markOrderAsPaid,
   markOrderAsDelivered,
+  fetchOrdersByTimeFrame,
+  updateOrderStatus,
 } from "../controllers/orderController.js";
 
 router
@@ -32,5 +34,7 @@ router.route("/:id").get(findOrderById);
 router.route("/:id/pay").put(markOrderAsPaid);
 // router.route("/:id/deliver").put(authenticate, authorizeAdmin, markOrderAsDelivered);
 router.route("/:id/deliver").put(markOrderAsDelivered);
+router.put("/:orderId/status", updateOrderStatus);
+router.route("/products/summary/:timeFrame").get(fetchOrdersByTimeFrame);
 
 export default router;
