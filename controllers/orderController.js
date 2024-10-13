@@ -44,11 +44,6 @@ const createOrder = async (req, res) => {
         (itemFromDB) => itemFromDB._id.toString() === itemFromClient._id
       );
 
-      //   if (!matchingItemFromDB) {
-      //     res.status(404);
-      //     throw new Error(`Product not found: ${itemFromClient._id}`);
-      //   }
-
       return {
         ...itemFromClient,
         product: itemFromClient._id,
@@ -200,210 +195,6 @@ const markOrderAsDelivered = async (req, res) => {
   }
 };
 
-// const fetchProductsByTimeFrame = async (req, res) => {
-//   try {
-//     const { timeFrame } = req.params; // Get the time frame from the query parameter
-//     const today = new Date();
-//     console.log(timeFrame);
-
-//     // Set the default start date as the start of the current day
-//     let startDate = new Date(
-//       today.getFullYear(),
-//       today.getMonth(),
-//       today.getDate()
-//     );
-
-//     // Determine the start date based on the time frame
-//     if (timeFrame === "week") {
-//       startDate = new Date(today.setDate(today.getDate() - today.getDay())); // Start of the week (assuming Sunday)
-//     } else if (timeFrame === "month") {
-//       startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Start of the month
-//     } else if (timeFrame === "year") {
-//       startDate = new Date(today.getFullYear(), 0, 1); // Start of the year
-//     }
-
-//     // Query products based on the start date
-//     const products = await Product.find({ createdAt: { $gte: startDate } });
-//     console.log(products);
-//     res.json({
-//       count: products.length,
-//       items: products,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Server error" });
-//   }
-// };
-
-// const fetchProductsByTimeFrame = async (req, res) => {
-//   try {
-//     const { timeFrame } = req.params;
-//     const today = new Date();
-
-//     // Ensure today's date is set to UTC at 00:00:00
-//     let startDate = new Date(
-//       Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
-//     );
-
-//     // Determine the start date based on the time frame
-//     if (timeFrame === "week") {
-//       startDate = new Date(
-//         today.setUTCDate(today.getUTCDate() - today.getUTCDay())
-//       ); // Start of the week (Sunday)
-//     } else if (timeFrame === "month") {
-//       startDate = new Date(
-//         Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)
-//       ); // Start of the month
-//     } else if (timeFrame === "year") {
-//       startDate = new Date(Date.UTC(today.getUTCFullYear(), 0, 1)); // Start of the year
-//     }
-
-//     console.log(startDate);
-
-//     // Query products based on the start date in UTC
-//     const products = await Product.find({ createdAt: { $gte: startDate } });
-//     res.json({
-//       count: products.length,
-//       items: products,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Server error" });
-//   }
-// };
-
-// const Order = require("../models/orderModel"); // Make sure to import your Order model
-
-// const fetchOrdersByTimeFrame = async (req, res) => {
-//   try {
-//     const { timeFrame } = req.params;
-//     const { page = 1, limit = 10 } = req.query; // Pagination parameters
-//     const today = new Date();
-//     let startDate;
-
-//     // Determine the start date based on the time frame
-//     if (timeFrame === "day") {
-//       startDate = new Date(today.setHours(0, 0, 0, 0)); // Start of today
-//     } else if (timeFrame === "week") {
-//       startDate = new Date(today.setDate(today.getDate() - today.getDay())); // Start of the week
-//     } else if (timeFrame === "month") {
-//       startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Start of the month
-//     } else if (timeFrame === "year") {
-//       startDate = new Date(today.getFullYear(), 0, 1); // Start of the year
-//     } else {
-//       // Default to current day if no valid time frame is provided
-//       startDate = new Date(today.setHours(0, 0, 0, 0));
-//     }
-
-//     // MongoDB aggregate pipeline
-//     const orders = await Order.aggregate([
-//       {
-//         $match: {
-//           createdAt: { $gte: startDate }, // Filter by start date
-//         },
-//       },
-//       {
-//         $sort: { createdAt: -1 }, // Sort by creation date (newest first)
-//       },
-//       {
-//         $skip: (page - 1) * limit, // Skip documents for pagination
-//       },
-//       {
-//         $limit: parseInt(limit), // Limit number of documents
-//       },
-//       {
-//         $project: {
-//           _id: 1,
-//           user: 1,
-//           orderItems: 1,
-//           totalPrice: 1,
-//           isPaid: 1,
-//           isDelivered: 1,
-//           createdAt: 1,
-//         }, // Select fields to return
-//       },
-//     ]);
-
-//     // Count total orders (for pagination)
-//     const totalOrders = await Order.countDocuments({
-//       createdAt: { $gte: startDate },
-//     });
-
-//     res.json({
-//       currentPage: page,
-//       totalPages: Math.ceil(totalOrders / limit),
-//       totalOrders,
-//       items: orders,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Server error" });
-//   }
-// };
-
-// const fetchOrdersByTimeFrame = async (req, res) => {
-//   try {
-//     const { timeFrame } = req.params;
-//     const { page = 1, limit = 10 } = req.query; // Pagination parameters
-//     const today = new Date();
-//     let startDate = null;
-//     // Determine the start date based on the time frame
-//     if (timeFrame === "day") {
-//       startDate = new Date(today.setHours(0, 0, 0, 0)); // Start of today
-//     } else if (timeFrame === "week") {
-//       startDate = new Date(today.setDate(today.getDate() - today.getDay())); // Start of the week
-//     } else if (timeFrame === "month") {
-//       startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Start of the month
-//     } else if (timeFrame === "year") {
-//       startDate = new Date(today.getFullYear(), 0, 1); // Start of the year
-//     }
-
-//     // MongoDB aggregate pipeline
-//     const matchStage = startDate
-//       ? { createdAt: { $gte: startDate } } // Filter by start date for day, week, month, year
-//       : {}; // No filter for "all" option
-
-//     const orders = await Order.aggregate([
-//       {
-//         $match: matchStage, // Apply match condition based on selected time frame
-//       },
-//       {
-//         $sort: { createdAt: -1 }, // Sort by creation date (newest first)
-//       },
-//       {
-//         $skip: (page - 1) * limit, // Skip documents for pagination
-//       },
-//       {
-//         $limit: parseInt(limit), // Limit number of documents
-//       },
-//       {
-//         $project: {
-//           _id: 1,
-//           user: 1,
-//           orderItems: 1,
-//           totalPrice: 1,
-//           isPaid: 1,
-//           isDelivered: 1,
-//           createdAt: 1,
-//         }, // Select fields to return
-//       },
-//     ]);
-
-//     // Count total orders (for pagination)
-//     const totalOrders = await Order.countDocuments(matchStage);
-
-//     res.json({
-//       currentPage: page,
-//       totalPages: Math.ceil(totalOrders / limit),
-//       totalOrders,
-//       items: orders,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Server error" });
-//   }
-// };
-
 const fetchOrdersByTimeFrame = async (req, res) => {
   try {
     const { timeFrame } = req.params;
@@ -411,25 +202,38 @@ const fetchOrdersByTimeFrame = async (req, res) => {
     const today = new Date();
     let startDate = null;
 
+    // Ensure we handle time zone correctly by creating a UTC date for comparison
+    const utcToday = new Date(
+      Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
+    );
+
     // Determine the start date based on the time frame
     if (timeFrame === "day") {
-      startDate = new Date(today.setHours(0, 0, 0, 0)); // Start of today
+      // Get the start of the current day (last 24 hours)
+      startDate = new Date(utcToday);
     } else if (timeFrame === "week") {
-      startDate = new Date(today.setDate(today.getDate() - today.getDay())); // Start of the week
+      // Get the start of the current week (starting on Sunday)
+      const startOfWeek = new Date(utcToday);
+      startOfWeek.setUTCDate(utcToday.getUTCDate() - utcToday.getUTCDay()); // Set to last Sunday
+      startDate = startOfWeek;
     } else if (timeFrame === "month") {
-      startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Start of the month
+      // Get the start of the current month
+      startDate = new Date(
+        Date.UTC(utcToday.getUTCFullYear(), utcToday.getUTCMonth(), 1)
+      );
     } else if (timeFrame === "year") {
-      startDate = new Date(today.getFullYear(), 0, 1); // Start of the year
+      // Get the start of the current year
+      startDate = new Date(Date.UTC(utcToday.getUTCFullYear(), 0, 1));
     }
 
     // MongoDB aggregate pipeline
     const matchStage = startDate
-      ? { createdAt: { $gte: startDate } } // Filter by start date for day, week, month, year
+      ? { createdAt: { $gte: startDate } } // Filter by start date
       : {}; // No filter for "all" option
 
     const orders = await Order.aggregate([
       {
-        $match: matchStage, // Apply match condition based on selected time frame
+        $match: matchStage, // Apply match condition based on the selected time frame
       },
       {
         $sort: { createdAt: -1 }, // Sort by creation date (newest first)

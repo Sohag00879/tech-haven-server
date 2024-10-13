@@ -33,46 +33,49 @@ const updateProductDetails = asyncHandler(async (req, res) => {
   try {
     const { name, description, price, category, quantity, brand, discount } =
       req.fields;
+
+    // Validate required fields
     switch (true) {
       case !name:
-        return res.json({ error: "Name is required" });
+        return res.status(400).json({ error: "Name is required" });
       case !description:
-        return res.json({ error: "Description is required" });
+        return res.status(400).json({ error: "Description is required" });
       case !price:
-        return res.json({ error: "Price is required" });
+        return res.status(400).json({ error: "Price is required" });
       case !category:
-        return res.json({ error: "Category is required" });
+        return res.status(400).json({ error: "Category is required" });
       case !quantity:
-        return res.json({ error: "Quantity is required" });
+        return res.status(400).json({ error: "Quantity is required" });
       case !brand:
-        return res.json({ error: "Brand is required" });
+        return res.status(400).json({ error: "Brand is required" });
     }
+
     const previousProduct = await Product.findById(req.params.id);
 
     let finalPrice;
-    if (discount != undefined) {
-      finalPrice = (
-        previousProduct.price -
-        (previousProduct.discount / 100) * previousProduct.price
-      ).toFixed(0);
+
+    // Ensure discount is a valid number
+    if (discount && discount > 0 && discount <= 100) {
+      finalPrice = price - (price * discount) / 100;
     } else {
-      finalPrice = previousProduct.price;
+      finalPrice = price;
     }
-    console.log(finalPrice);
-    console.log(discount);
-    const product = await Product.findByIdAndUpdate(
+
+    const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       {
         ...req.fields,
         finalPrice,
+        discount: discount || previousProduct.discount, // Retain previous discount if no new one is provided
       },
       { new: true }
     );
-    await product.save();
-    res.json(product);
+
+    await updatedProduct.save();
+    res.json(updatedProduct);
   } catch (error) {
     console.error(error);
-    res.status(400).json(error.message);
+    res.status(400).json({ error: "Product update failed. Try again." });
   }
 });
 
