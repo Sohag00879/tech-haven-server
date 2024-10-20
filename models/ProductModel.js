@@ -47,9 +47,13 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    image: {
-      type: String,
-      required: true,
+    // image: {
+    //   type: String,
+    //   required: true,
+    // },
+    docAvatar: {
+      public_id: String,
+      url: String,
     },
     brand: {
       type: String,

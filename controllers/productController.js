@@ -1,9 +1,54 @@
+import cloudinary from "cloudinary";
+import dotenv from "dotenv";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import Product from "../models/productModel.js";
 
+dotenv.config();
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 const addProduct = asyncHandler(async (req, res) => {
   try {
-    const { name, description, price, category, quantity, brand } = req.fields;
+    const {
+      name,
+      description,
+      price,
+      category,
+      quantity,
+      brand,
+      countInStock,
+    } = req.body;
+
+    // start
+
+    if (!req.files || Object.keys(req.files).length === 0) {
+      return res.json({ error: "Product Image Required" });
+    }
+    const { docAvatar } = req.files;
+    const allowedFormats = [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "image/jpg",
+    ];
+    if (!allowedFormats.includes(docAvatar.mimetype)) {
+      return res.json({ error: '"File Format Not Supported!"' });
+    }
+    const cloudinaryResponse = await cloudinary.uploader.upload(
+      docAvatar.tempFilePath
+    );
+    if (!cloudinaryResponse || cloudinaryResponse.error) {
+      console.error(
+        "Cloudinary Error:",
+        cloudinaryResponse.error || "Unknown Cloudinary error"
+      );
+      return res.json({
+        error: "Failed To Upload Product Avatar To Cloudinary",
+      });
+    }
+    // end
 
     switch (true) {
       case !name:
@@ -18,10 +63,28 @@ const addProduct = asyncHandler(async (req, res) => {
         return res.json({ error: "Quantity is required" });
       case !brand:
         return res.json({ error: "Brand is required" });
+      case !countInStock:
+        return res.json({ error: "CountInStok is required" });
     }
 
-    const product = new Product({ ...req.fields });
-    await product.save();
+    // const product = new Product({ ...req.fields });
+    // await product.save();
+    // res.json(product);
+
+    const product = await Product.create({
+      name,
+      description,
+      price,
+      category,
+      quantity,
+      brand,
+      countInStock,
+
+      docAvatar: {
+        public_id: cloudinaryResponse.public_id,
+        url: cloudinaryResponse.secure_url,
+      },
+    });
     res.json(product);
   } catch (error) {
     console.error(error);
@@ -31,51 +94,101 @@ const addProduct = asyncHandler(async (req, res) => {
 
 const updateProductDetails = asyncHandler(async (req, res) => {
   try {
-    const { name, description, price, category, quantity, brand, discount } =
-      req.fields;
+    const {
+      name,
+      description,
+      price,
+      category,
+      quantity,
+      brand,
+      discount,
+      countInStock,
+    } = req.body;
 
     // Validate required fields
-    switch (true) {
-      case !name:
-        return res.status(400).json({ error: "Name is required" });
-      case !description:
-        return res.status(400).json({ error: "Description is required" });
-      case !price:
-        return res.status(400).json({ error: "Price is required" });
-      case !category:
-        return res.status(400).json({ error: "Category is required" });
-      case !quantity:
-        return res.status(400).json({ error: "Quantity is required" });
-      case !brand:
-        return res.status(400).json({ error: "Brand is required" });
+    if (
+      !name ||
+      !description ||
+      !price ||
+      !category ||
+      !quantity ||
+      !brand ||
+      !countInStock
+    ) {
+      return res.status(400).json({ error: "All fields are required" });
     }
 
+    // Retrieve the existing product
     const previousProduct = await Product.findById(req.params.id);
+    if (!previousProduct) {
+      return res.status(404).json({ error: "Product not found" });
+    }
 
     let finalPrice;
-
-    // Ensure discount is a valid number
+    // Calculate final price based on discount, if provided
     if (discount && discount > 0 && discount <= 100) {
       finalPrice = price - (price * discount) / 100;
     } else {
       finalPrice = price;
     }
 
+    // Check if a new image is uploaded
+    let updatedDocAvatar = previousProduct.docAvatar; // Default to the existing image
+    if (req.files && req.files.docAvatar) {
+      const { docAvatar } = req.files;
+      const allowedFormats = [
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/jpg",
+      ];
+      if (!allowedFormats.includes(docAvatar.mimetype)) {
+        return res.status(400).json({ error: "File format not supported!" });
+      }
+
+      // Upload new image to Cloudinary
+      const cloudinaryResponse = await cloudinary.uploader.upload(
+        docAvatar.tempFilePath
+      );
+      if (!cloudinaryResponse || cloudinaryResponse.error) {
+        console.error(
+          "Cloudinary Error:",
+          cloudinaryResponse.error || "Unknown Cloudinary error"
+        );
+        return res
+          .status(500)
+          .json({ error: "Failed to upload product image" });
+      }
+
+      // Set the new image data
+      updatedDocAvatar = {
+        public_id: cloudinaryResponse.public_id,
+        url: cloudinaryResponse.secure_url,
+      };
+    }
+
+    // Update product details
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       {
-        ...req.fields,
+        name,
+        description,
+        price,
         finalPrice,
         discount: discount || previousProduct.discount, // Retain previous discount if no new one is provided
+        category,
+        quantity,
+        countInStock,
+        brand,
+        docAvatar: updatedDocAvatar, // Use either the new image or retain the existing one
       },
       { new: true }
     );
 
-    await updatedProduct.save();
     res.json(updatedProduct);
   } catch (error) {
-    console.error(error);
-    res.status(400).json({ error: "Product update failed. Try again." });
+    console.error("Product Update Error:", error);
+    res.status(500).json({ error: "Product update failed. Try again." });
   }
 });
 
@@ -293,18 +406,18 @@ const getProductsBySearch = asyncHandler(async (req, res) => {
 
 export {
   addProduct,
-  updateProductDetails,
-  removeProduct,
+  addProductCompare,
+  addProductReview,
+  fetchAllProducts,
+  fetchNewProducts,
   fetchProducts,
   fetchSingleProducts,
-  fetchAllProducts,
-  addProductReview,
   fetchTopProducts,
-  fetchNewProducts,
   filterProducts,
   flashSaleProducts,
-  productFilterByOffer,
-  addProductCompare,
   getProductByCategory,
   getProductsBySearch,
+  productFilterByOffer,
+  removeProduct,
+  updateProductDetails,
 };

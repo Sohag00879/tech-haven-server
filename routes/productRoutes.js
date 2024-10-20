@@ -1,23 +1,20 @@
 import express from "express";
-import ExpressFormidable from "express-formidable";
-import { authenticate, authorizeAdmin } from "../middlewares/authMiddleware.js";
-import checkId from "../middlewares/checkid.js";
 import {
   addProduct,
-  updateProductDetails,
-  removeProduct,
+  addProductCompare,
+  addProductReview,
+  fetchAllProducts,
+  fetchNewProducts,
   fetchProducts,
   fetchSingleProducts,
-  fetchAllProducts,
-  addProductReview,
   fetchTopProducts,
-  fetchNewProducts,
   filterProducts,
   flashSaleProducts,
-  productFilterByOffer,
-  addProductCompare,
   getProductByCategory,
   getProductsBySearch,
+  productFilterByOffer,
+  removeProduct,
+  updateProductDetails,
 } from "../controllers/productController.js";
 const router = express.Router();
 
@@ -25,7 +22,8 @@ router
   .route("/")
   .get(fetchProducts)
   //   .post(authenticate, authorizeAdmin, ExpressFormidable(), addProduct);
-  .post(ExpressFormidable(), addProduct);
+  // .post(ExpressFormidable(), addProduct);
+  .post(addProduct);
 
 router.route("/allProducts").get(fetchAllProducts);
 
@@ -44,7 +42,8 @@ router
   .route("/:id")
   .get(fetchSingleProducts)
   //   .put(authenticate, authorizeAdmin, ExpressFormidable(), updateProductDetails);
-  .put(ExpressFormidable(), updateProductDetails)
+  // .put(ExpressFormidable(), updateProductDetails)
+  .put(updateProductDetails)
   //   .delete(authenticate,authorizeAdmin,removeProduct);
   .delete(removeProduct);
 
